@@ -439,6 +439,8 @@ b.run(0 * b.second)
 j = 0
 
 while j < (int(num_examples)):
+    print(j/int(num_examples) * 100, "% completed")
+    
     if test_mode:
         if use_testing_set:
             rates2 = testing['x'][j%10000,:,:].reshape(n_input) / 8. * input_intensity
