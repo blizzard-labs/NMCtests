@@ -404,9 +404,9 @@ spikes_in = b.SpikeMonitor(group_in, record=True)
 if ee_STDP_on: # defaults to method = 'exact', specified method = 'euler'
     conn_ee = b.Synapses(group_in, group_ne, eqs_stdp_ee, method='euler', on_pre = eqs_stdp_pre_ee, on_post = eqs_stdp_post_ee)
     conn_ee.connect()
-    conn_ee.w = 'rand()*rand_weight' # use for random weights
-    #weightMatrix = get_matrix_from_file('weights/XeAe' + load_name + ending + '.npy') # loads pre-generated random initial weights
-    #conn_ee.w = weightMatrix
+    #conn_ee.w = 'rand()*rand_weight' # use for random weights
+    weightMatrix = get_matrix_from_file('random/XeAe' + load_name + ending + '.npy') # loads pre-generated random initial weights
+    conn_ee.w = weightMatrix
 else:
     weightMatrix = get_matrix_from_file(weight_path + 'XeAe' + load_name + ending + '.npy')
     conn_ee = b.Synapses(group_in, group_ne, 'w : 1', on_pre = 'ge_post += w')
