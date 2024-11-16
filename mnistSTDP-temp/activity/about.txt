@@ -1,0 +1,137 @@
+Created on 15.12.2014
+
+@author: Peter U. Diehl
+
+Updated by Genevieve Fahey to use Python 3.x instead of Python 2.x
+
+
+# * ======================================================================
+# * Equations, Variables, and Constants
+# * ======================================================================
+
+# * Leaky Integrate and Fire Neuron Model ------------------------------------
+
+    tau * dV/dt = (e_rest - V) + g_e * (e_exc - V) + g_i * (e_inh - V)
+        e_rest    resting membrane potential
+        e_exc     equillibrium potential for excitatory synapses
+        e_inh     equillibrium poteintal for inhibitory synapses
+        g_e       conductance of excitatory synapses
+        g_i       conductance for inhibitory synapses
+        tau       time constant which is longer for excitatory than inhibitory neurons
+        V         membrane voltage
+        t         time steps
+        
+        Model describing continuous membrane voltage updates
+
+    V > v_thresh: V = v_reset    
+        v_thresh  membrane threshold
+        v_reset   initial membrane potential
+        
+        Model describing firing event which is followed by refractory period
+    
+# * Conductance-based Synapse Model ------------------------------------------
+
+    g_e += w
+        g_e       conductance for excitatory synapses
+        
+        Instantaneous conductance update to excitatory synapse following presynaptic spike
+    
+    g_i += w
+        g_i       conductance for inhibitory synapses
+        
+        Instantaneous conductance update to inhibitory synapse following presynaptic spike
+    
+    tau_g_e * d(g_e)/dt = -g_e
+        tau_g_e   time constant of an excitatory postsynaptic potential
+        g_e       conductance of excitatory synapses
+        t         time steps
+        
+        Model describing exponential decay of conductance to excitatory synapse with lack of spike
+    
+    tau_g_i * d(g_i)/dt = -g_i
+        tau_g_i   time constant of an inhibitory postsynaptic potential
+        g_e       conductance of inhibitory synapses
+        t         time steps
+        
+        Model describing exponential decay of conductance to inhibitory synapse with lack of spike
+        
+
+# * 
+
+
+# * Network Architecture -----------------------------------------------------
+
+    Input Layer : 28 x 28 neurons (one neuron per pixel)
+        Fed as a poisson spike train which are then fed to excitatory of second layer
+        
+    Processing Layer : Variable number of excitatory neurons and an equal number of inhibitory
+        Excitatory neurons are connected in a 1:1 fashion with inhibitory neurons (lateral inhibition)
+        Maximum conductance of inhibitory to excitatory fixed at 10 nS
+        
+# * Unsupervised STDP Learning -----------------------------------------------
+
+    x_pre += 1
+        x_pre     presynaptic trace
+        
+        Response to everytime a presynaptic spike arrives at a synapse
+        
+    #! Include exponential decay of trace equation 
+    
+    delta_w = learn_r * (x_pre - x_tar) * (w_max - w)^m
+        delta_w   change in synaptic weight
+        learn_r   learning rate
+        x_pre     presynaptic trace
+        x_tar     target value of presynaptic trace at the moment of a postsynaptic spike
+        w_max     maximum synaptic weight
+        w         synaptic weight
+
+# * Adaptive Membrane Threshold (Homeostatis) --------------------------------
+
+    v_thresh += theta
+        v_thresh  membrane potential threshold
+        theta     homeostatis constant
+        
+        Model determining membrane threshold
+        
+    theta += 1
+        theta     homeostatis constant
+        
+        Increase of theta with each spike
+        
+    #! Include exponential decay of theta equation
+        Once the v_thresh is close to e_exc, it will fire less often until theta decreases
+
+# * Input Encoding -----------------------------------------------------------
+    Input is presented for 350 ms as Poisson-distributed spike trains
+        Max pixel intensity of 255 is divided by 4 resulting in firing rates (0, 63.75Hz)
+    IF excitatory neurons in sencond layer fire less than 5 spikes in 350 ms, maximimum input firing rate is increased by 32 Hz 
+
+
+
+
+
+
+
+
+
+============================================================
+TODO List:
+* Input Encoding
+* Neuron/Synapse Model
+* Adaptive Membrane Threshold
+* STDP/ANN-conversion training
+
+
+
+# * Input Encoding
+    - Normalization: p_norm = (p - 127.5)/127.5
+    - Quantization: p_quant = floor(|p_norm| * (N - 1) + 1)
+        N: number of quantized levels
+    - Spike train: T(t) = { |p_norm| / p_norm       if p_quant >= 2 and t = 1
+                          { -1 * |p_norm| / p_norm  if p_quant >= 2, t = p_quant
+                          { 0                       else
+
+
+* Neuron / Synapse Model
+    V_m = V_m(t - 1) + (dV_m/dt)(t)
+    (dV_m/dt) (t) = 
