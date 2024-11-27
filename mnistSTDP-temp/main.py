@@ -37,47 +37,25 @@ print('Start time: ', timer_start)
 
 ending = ''
 n_input = 784
-n_e = 400
-n_i = n_e
+num_neurons = 400
 
-time_step = 1 * b.ms
+tau = 1*b.ms
+v_thresh = 10*b.mV
+refrac = 5.*b.ms
+v_rest = -10.*b.mV
+
 
 if test_mode:
     dataset = (x_test, y_test)
 else:
     dataset = (x_train, y_train)
 
-v_rest_e = -65. * b.mV #resting excitatory potential
-v_rest_i = -60. * b.mV #resting inhibiotry poteintial
-v_reset_e = -65. * b.mV #Reset poteintial for excitatory #! Adaptive thresholding, change later
-v_reset_i = -45. * b.mV #Reset poteintial for inhibitory
-v_thresh_e = -52. * b.mV
-v_thresh_i = -40. * b.mV #Spiking threshold for inhibitory
-refrac_e = 5. * b.ms #Refractory period for excitatory
-refrac_i = 2. * b.ms #Refractory period for inhibitory
+neuron_eqs = '''
+        dv/dt = (v0 - v)/tau : volt (unless refractory)
+        v0 : volt
+        s = s * -1 : 1
+'''
 
-weight_ee = 78. #Synaptic weight excitatatory --> excitatory
-input_intensity = 2. 
-delay_ee = 10. * b.ms #Synaptic delay excitatory --> excitatory
-delay_ie = 5. * b.ms #Synaptic delay inhibitory --> excitatory
-
-neuron_eqs_e = '''
-        dv/dt = ((v_rest_e - v) + (I_synE+I_synI) / nS) / (100*ms)  : volt (unless refractory)
-        I_synE = ge * nS *         -v                               : amp
-        I_synI = gi * nS * (-100.*mV-v)                             : amp
-        dge/dt = -ge/(1.0*ms)                                       : 1
-        dgi/dt = -gi/(2.0*ms)                                       : 1
-        '''
-
-neuron_eqs_i = '''
-        dv/dt = ((v_rest_i - v) + (I_synE+I_synI) / nS) / (10*ms)  : volt (unless refractory)
-        I_synE = ge * nS *         -v                              : amp
-        I_synI = gi * nS * (-85.*mV-v)                             : amp
-        dge/dt = -ge/(1.0*ms)                                      : 1
-        dgi/dt = -gi/(2.0*ms)                                      : 1
-        '''
-
-scr_e = 'v - v_reset_e; timer = 0*ms'
 
 # * ======================================================================
 # * Creating Input Populations
@@ -99,8 +77,8 @@ for i, p in enumerate(norm_img.flatten()):
         quantized_level = int(np.floor(np.abs(p) * (quant_levels - 1)) + 1)
         if (quantized_level >= 2):
             #Generating TSC Spikes per pixel
-            t_s_plus = 1 * time_step #First spike
-            t_s_minus = quantized_level * time_step #Second spike
+            t_s_plus = 1 * tau #First spike
+            t_s_minus = quantized_level * tau #Second spike
             
             #Generating bipolar spikes based on pixel sign
             row, col = divmod(i, img.shape[1])
@@ -113,18 +91,22 @@ for i, p in enumerate(norm_img.flatten()):
                 positive_spike_times.append((pixel_ind, t_s_minus))
                 negative_spike_times.append((pixel_ind, t_s_plus))
 
-# Combining the spike time
-spike_times = positive_spike_times + negative_spike_times
-
 # Create SpikeGeneratorGroup for positive and negative spikes
-pixel_indices = [i for i, _ in spike_times]
-times = [t for _, t in spike_times]
+pixel_indices_e = [i for i, _ in positive_spike_times]
+times_e = [t for _, t in positive_spike_times]
 
-spike_gen_group = SpikeGeneratorGroup(num_pixels, pixel_indices, times)
-input_mon = SpikeMonitor(spike_gen_group)
+pixel_indices_i = [i for i, _ in negative_spike_times]
+times_i = [t for _, t in negative_spike_times]
+
+spikes_in_e = SpikeGeneratorGroup(num_pixels, pixel_indices_e, times_e)
+spikes_in_i = SpikeGeneratorGroup(num_pixels, pixel_indices_i, times_i)
+print(times_e)
+
+'''
+input_mon_e = SpikeMonitor(spikes_in_e)
 
 #Preview Input Spikes
-'''
+
 run(3*b.second)
 plot(input_mon.t/ms, input_mon.i, '.')
 show()
@@ -134,4 +116,31 @@ show()
 # * Network population and recurrent connections
 # * ======================================================================
 
-group_ne = b.NeuronGroup(n_e, neuron_eqs_e, method='euler', threshold= v_thresh_e, refractory= refrac_e, reset= scr_e)
+
+neuronsA = b.NeuronGroup(num_neurons, neuron_eqs, method = 'euler', threshold=v_thresh, refractory=refrac)
+
+neuronsA.v = v_rest
+neuronsA.v0 = 0*b.mV
+neuronsA.s = 1 #State variable on positive/negative spike
+
+print("created neuron groups")
+
+#Creating connections
+
+conn_ein2a = b.Synapses(spikes_in_e, neuronsA, 
+                        '''
+                        w : 1
+                        ''', 
+                        on_pre='''
+                        v_post += w
+                        ''', method = 'exact')
+conn_iin2a = b.Synapses(spikes_in_i, neuronsA, 
+                        '''
+                        w : 1
+                        ''',
+                        on_pre='''
+                        v_post -= w
+                        ''', method='exact')
+
+
+neuronsB = b.NeuronGroup(num_neurons, neuron_eqs, method = 'euler', threshold=v_thresh, refractory=refrac)
