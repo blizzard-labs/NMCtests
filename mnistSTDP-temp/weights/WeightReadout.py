@@ -3,6 +3,7 @@
 import numpy as np
 from pylab import *
 import matplotlib.cm as cm
+import os
 
 ending = ''
 chosenCmap = cm.get_cmap('hot_r') #cm.get_cmap('gist_ncar')
@@ -55,7 +56,8 @@ n_input = 784
 n_e = 400
 
 for name in readoutnames:
-    readout = np.load(name + '.npy')
+    file_path = os.path.expanduser(f'~/Projects/NMCtests/mnistSTDP-temp/weights/{name}.npy')
+    readout = np.load(file_path)
     if (name == 'XeAe' + ending):
         value_arr = np.nan * np.ones((n_input, n_e))
     else:
@@ -159,13 +161,12 @@ savefig(str(fi.number))
 # plt3d.plot_surface(xx, yy, z)
 
 XA_sum = np.nansum(XA_values[0:n_input,0:n_e], axis = 0)/n_e
-AA_sum = np.nansum(AA_values[0:n_e,0:n_e], axis = 0)/n_e
 
 fi = figure()
-plot(XA_sum, AA_sum, 'w.')
-for label, x, y in zip(range(200), XA_sum, AA_sum):
+plot(XA_sum, 'w.')
+for label, x in zip(range(200), XA_sum):
     plt.annotate(label,
-                xy = (x, y), xytext = (-0, 0),
+                xy = (x), xytext = (-0, 0),
                 textcoords = 'offset points', ha = 'right', va = 'bottom',
                 color = 'k')
 xlabel('summed input from X to A for A neurons')
@@ -175,4 +176,4 @@ savefig(str(fi.number))
 
 
 print('done')
-show()
+plt.show()
