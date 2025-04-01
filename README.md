@@ -1,6 +1,6 @@
 # MesoNet: Optimizing Spiking Neural Networks with Dynamic Saddle Distributions
 
-**NOTE (MesoNet) [Updated 3/30/2025]:** Currently organizing this repo for public use!
+**NOTE (MesoNet) [Updated 3/30/2025]:** Currently updating and organizing this repo for public use!
 
 ## <h2 id="about">Author's Note</a> </h2>
 MesoNet was created through the individual research of Krishna Bhatt. While researching neuroimaging last year, I came across bio-plausible neuron simulations. I was fascinated by its possible computational applications and individually began work on this year’s project in July 2024, after a literature review.
