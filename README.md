@@ -1,12 +1,12 @@
-# MesoNet: Optimizing Spiking Neural Networks with Dynamic Saddle Distributions
+# MesoNet V1.5: Optimizing Spiking Neural Networks with Dynamic Saddle Distributions
 
-**NOTE (MesoNet) [Updated 4/3/2025]:** Currently updating and organizing this repo for public use!
+**NOTE (MesoNet) [Updated 4/3/2025]:** Currently updating with MesoNet V2 and organizing this repo for public use!
 
 #### File Organization
 - `root\assets`: Random images, visualizations, etc. from the project
 - `root\benchmarks`: Benchmark datasets used for testing (model is based upon MNIST)
 - `root\experimentation`: Workspace with random assortment of ideas, testing, and experimentation during development
-- `root\model`: MesoNet V1.5 (polishing V2)
+- `root\model`: MesoNet V1.5 (currently polishing up V2)
   - `root\model\functions.py`: Input encoding, MesoNet learning algorithms, clustering and assignments
   - `root\model\mesonet.py`: Primary model structure (split and merge)
   - `root\model\train.py`: Simulation controller
