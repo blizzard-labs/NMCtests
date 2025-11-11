@@ -1,6 +1,6 @@
 # MesoNet V1.5: Optimizing Spiking Neural Networks with Dynamic Saddle Distributions
 
-**NOTE (MesoNet) [Updated 4/3/2025]:** Currently updating with MesoNet V2 and organizing this repo for public use!
+**NOTE (MesoNet) [Updated 4/3/2025]:** Currently preparing/organizing this repo for public use (MesoNet V2)!
 
 ## <h2 id="about">About (CSEF Abstract)</a> </h2>
 Artificial neural network (ANN) clustering algorithms require hundreds of watts, considerably limiting their abilities across numerous energy-critical applications. A developing technology, spiking neural networks (SNNs) offer a promising alternative, requiring mere milliwatts by mimicking biological neurons on neuromorphic chips. However, the prevalent spike-timing-dependent-plasticity (STDP) learning rule struggles to scale for practical tasks, reducing accuracy by up to 40% compared to ANNs. This project addresses these challenges with a two-step approach: mathematically investigating SNN learning behavior with dynamical systems theory, before developing an algorithm for improved generalization.
